@@ -2,15 +2,22 @@ import telebot
 
 bot = telebot.TeleBot('5198683969:AAF_PzZ82SizhqndIrhKv6gDCIQzXgyBklc') # привязка к боту
 
-# отслеживание команд
-@bot.message_handler(commands=['start'])
-def start(message, res=False):
-    #bot.send_message(message.chat.id, 'Привет')#'<b>Hello</b>', parse_mode='html')
-    if message.text == "Привет":
-        bot.send_message(message.from_user.id, "Привет, чем я могу тебе помочь?")
-    elif message.text == "/help":
-        bot.send_message(message.from_user.id, "Напиши привет")
-    else:
-        bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши /help.") 
+# функция удаления
+def del_some_words(my_text):
+    my_text = list(filter(lambda x: 'абв' not in x, my_text.split()))
+    return " ".join(my_text)
 
-bot.polling(none_stop=True, interval=0)
+
+# Функция, обрабатывающая команду /start
+@bot.message_handler(commands=["start"])
+def start(m, res=False):
+    bot.send_message(m.chat.id, 'Введите текст, из которого будем удалять слова с абв')
+
+# Получение сообщений от пользователя
+@bot.message_handler(content_types=["text"])
+def handle_text(message):
+    bot.send_message(message.chat.id, del_some_words(message.text))
+
+bot.polling(none_stop=True, interval=0) # запуск бота на постоянной основе
+
+
