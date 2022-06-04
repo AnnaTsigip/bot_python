@@ -1,69 +1,132 @@
+from distutils.command.config import config
 import telebot
 from telebot import types
+"""
 
+1. создать 4 переменные:
+первое число, операция, второе число результата
+2. Создать функцию, которая делает вычисления, 
+3.запросить у пользователя первое число, операцию, второе число
+4 сделать вычисления, в зависимост от выбора пользователя, показать результата, или продолж ить вычисления.
+5. опретор + приходит строкой, он не во что не преобразовывается. ведь это опратор, т.е. 3 "+" 2 - ошибка. 
+используется функция eval(), в которую передаем строку "3+2" и операвция выполняется верно.
+6. зациклить вычисления, т.е. если выбрал результат - показать результат, 
+если "продолжить вычисления" - передать результат вычисления как первое число.
+
+"""
 bot = telebot.TeleBot("5465709277:AAEAF06f3GE2L24Y-jI0KuaT_Q5Kwo693j4")
 
-value = ""
-old_value = ""
+user_num1 = ""
+user_num1 = ""
+user_proc = '' # оператор 
+user_result = None
 
-keyboard = telebot.types.InlineKeyboardMarkup()
-keyboard.row(   telebot.types.InlineKeyboardButton(" ", callback_data="no"),
-                telebot.types.InlineKeyboardButton("C", callback_data="C"),
-                telebot.types.InlineKeyboardButton("<=", callback_data="<="),
-                telebot.types.InlineKeyboardButton("/", callback_data="/") )
 
-keyboard.row(   telebot.types.InlineKeyboardButton("7", callback_data="7"),
-                telebot.types.InlineKeyboardButton("8", callback_data="8"),
-                telebot.types.InlineKeyboardButton("9", callback_data="9"),
-                telebot.types.InlineKeyboardButton("*", callback_data="*") )
+# если /start, /help
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    # убрать клавиатуру Telegram полностью - reply_markup = markup
+    markup = types.ReplyKeyboardRemove(selective=False)
 
-keyboard.row(   telebot.types.InlineKeyboardButton("4", callback_data="4"),
-                telebot.types.InlineKeyboardButton("5", callback_data="5"),
-                telebot.types.InlineKeyboardButton("6", callback_data="6"),
-                telebot.types.InlineKeyboardButton("-", callback_data="-") )
+    msg = bot.send.message(message.chat.id, "Привет" + message.from_user.first_name + ", я бот-калькулятор\nВведите число", reply_markup = markup)
+    bot.register_next_step_handler(msg, process_num1_step)
 
-keyboard.row(   telebot.types.InlineKeyboardButton("1", callback_data="1"),
-                telebot.types.InlineKeyboardButton("2", callback_data="2"),
-                telebot.types.InlineKeyboardButton("3", callback_data="3"),
-                telebot.types.InlineKeyboardButton("+", callback_data="+") )
-
-keyboard.row(   telebot.types.InlineKeyboardButton(" ", callback_data="no"),
-                telebot.types.InlineKeyboardButton("0", callback_data="0"),
-                telebot.types.InlineKeyboardButton(",", callback_data="."),
-                telebot.types.InlineKeyboardButton("=", callback_data="=") )
-
-@bot.message_handler(commands = ["start", "calculater"] )
-def getmessage(message):
-    global value
-    if value == "":
-        bot.send_message(message.from_user.id, "0", reply_markup=keyboard)
-    else:
-        bot.send_message(message.from_user.id, value, reply_markup=keyboard)
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_func(query):
-    global value, old_value
-    data = query.data
-
-    if data == "no" :
-        pass
-    elif data == "C" :
-        value = ""
-    elif data == "=" :
-        try:
-            value == str(eval(value))
-        except:
-            value = "Ошибка!"
-    else:
-        value += data
-
-    if value != old_value:
-        if value == "":
-            bot.edit_message_text(chat_id=query.message.chat.id, message_id=query.message.message_id, text="0", reply_markup=keyboard)
+# введите первое число
+def process_num1_step(message, user_resalt = None):
+    try:
+        global user_num1
+        # запоминаем число
+        #есди только нчали /start
+        if user_result == None:
+            user_num1 = int(message.text)
         else:
-            bot.edit_message_text(chat_id=query.message.chat.id, message_id=query.message.message_id, text=value, reply_markup=keyboard)
+            # ecли был передан результат ранее
+            # пишем в первое число не спрашивая
+            user_num1 = str(user_result)
 
-    old_value = value
-    if value == "Ошибка!": value = ""
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        itembtn1 = types.KeyboardButton('+')
+        itembtn2 = types.KeyboardButton('-')
+        itembtn3 = types.KeyboardButton('*')
+        itembtn4 = types.KeyboardButton('/')
+        markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
 
-bot.polling(none_stop=False, interval=0)
+        msg = bot.send_message(message.chat.id, 'Выберите операцию', reply_markup = markup)
+        bot.register_next_step_handler(msg, process_proc_step)
+    except Exception as e:
+        bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+
+# выберите операцию +, -, *, /
+def process_proc_step(message):
+    try:
+        global user_proc
+        # запоминаем операцию
+        user_proc = message.text
+        # убрать клавиатуру телеграм полностью
+        markup = types.ReplyKeyboardRemove(selective=False)
+
+        msg = bot.send_message(message.chat.id, 'Выберите еще число', reply_markup = markup)
+        bot.register_next_step_handler(msg, process_proc_step)
+    except Exception as e:
+         bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+        
+# второе число
+
+def process_num2_step(message):
+    try:
+        global user_num2
+        # запоминаем число
+        user_num2 = int(message.text)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        itembtn1 = types.KeyboardButton('Результат')
+        itembtn2 = types.KeyboardButton('Продолжить вычисления')
+        markup.add(itembtn1, itembtn2)
+
+        msg = bot.send_message(message.chat.id, 'Показать результат или продолжить вычисления? ', reply_markup = markup)
+        bot.register_next_step_handler(msg, process_alternative_step)
+    except Exception as e:
+        bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+
+
+# показать результат или продолжить операцию
+
+def process_alternative_step(message):
+    try:
+        # делать вычисления
+        calc()
+        # убрать клавиатуру телеграм полностью
+        markup = types.ReplyKeyboardRemove(selective=False)
+        if message.text.lover() == 'результат':
+            bot.send_message(message.chat.id, caicResultPrint(), reply_markup = markup)
+        elif message.text.lover() == 'Продолжить вычисления':
+            # перейти на шаг, где спрашиваем оператор
+            # передаем ркзультат как первое число
+            process_proc_step(message, user_result)
+    except Exception as e:
+        bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+
+# вывод результата пользователю
+
+
+def caicResultPrint():
+    global user_num1, user_num2, user_proc, user_result
+    return "Результат:" + str(user_num1) + ' ' + user_proc + ' ' + str(user_num2) + '=' + str(user_result )
+
+
+# вычисления 
+
+def calc():
+    global user_num1, user_num2, user_proc, user_result
+    user_result =  eval(str(user_num1) + user_proc + str(user_num2))
+    return user_result
+
+bot.enable_save_next_step_handlers(delay=2)
+
+bot.load_next_step_handlers()
+
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
+
+
+
+
