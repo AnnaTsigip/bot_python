@@ -1,4 +1,4 @@
-from distutils.command.config import config
+
 import telebot
 from telebot import types
 """
@@ -28,11 +28,11 @@ def send_welcome(message):
     # убрать клавиатуру Telegram полностью - reply_markup = markup
     markup = types.ReplyKeyboardRemove(selective=False)
 
-    msg = bot.send.message(message.chat.id, "Привет" + message.from_user.first_name + ", я бот-калькулятор\nВведите число", reply_markup = markup)
+    msg = bot.send_message(message.chat.id, "Привет" + message.from_user.first_name + ", я бот-калькулятор\nВведите число", reply_markup = markup)
     bot.register_next_step_handler(msg, process_num1_step)
 
 # введите первое число
-def process_num1_step(message, user_resalt = None):
+def process_num1_step(message, user_result = None):
     try:
         global user_num1
         # запоминаем число
@@ -120,13 +120,13 @@ def calc():
     user_result =  eval(str(user_num1) + user_proc + str(user_num2))
     return user_result
 
-bot.enable_save_next_step_handlers(delay=2)
+# bot.enable_save_next_step_handlers(delay=2)
 
-bot.load_next_step_handlers()
+# bot.load_next_step_handlers()
 
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
-
+# if __name__ == '__main__':
+#     bot.polling(none_stop=True)
+bot.polling(none_stop=True, interval=0) # запуск бота на постоянной основе
 
 
 
