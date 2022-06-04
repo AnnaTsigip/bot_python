@@ -7,7 +7,7 @@ from telebot import types
 первое число, операция, второе число результата
 2. Создать функцию, которая делает вычисления, 
 3.запросить у пользователя первое число, операцию, второе число
-4 сделать вычисления, в зависимост от выбора пользователя, показать результата, или продолж ить вычисления.
+4 сделать вычисления, в зависимост от выбора пользователя, показать результата, или продолжить вычисления.
 5. опретор + приходит строкой, он не во что не преобразовывается. ведь это опратор, т.е. 3 "+" 2 - ошибка. 
 используется функция eval(), в которую передаем строку "3+2" и операвция выполняется верно.
 6. зациклить вычисления, т.е. если выбрал результат - показать результат, 
@@ -36,7 +36,7 @@ def process_num1_step(message, user_result = None):
     try:
         global user_num1
         # запоминаем число
-        #есди только нчали /start
+        #если только начали /start
         if user_result == None:
             user_num1 = int(message.text)
         else:
@@ -66,7 +66,7 @@ def process_proc_step(message):
         markup = types.ReplyKeyboardRemove(selective=False)
 
         msg = bot.send_message(message.chat.id, 'Выберите еще число', reply_markup = markup)
-        bot.register_next_step_handler(msg, process_proc_step)
+        bot.register_next_step_handler(msg, process_num2_step)
     except Exception as e:
          bot.reply_to(message, 'Это не число, или что-то пошло не так...')
         
