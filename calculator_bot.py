@@ -1,8 +1,9 @@
 
 import telebot
 from telebot import types
-"""
 
+"""
+Калькулятор
 1. создать 4 переменные:
 первое число, операция, второе число результата
 2. Создать функцию, которая делает вычисления, 
@@ -20,6 +21,7 @@ user_num1 = ''
 user_num2 = ''
 user_proc = '' # оператор 
 user_result = None
+
 
 # если /start, /help
 @bot.message_handler(commands=['start', 'help'])
@@ -134,5 +136,4 @@ if __name__ == '__main__':
     bot.polling(none_stop=True)
 
 #bot.polling(none_stop=True, interval=0) # запуск бота на постоянной основе
-
 
