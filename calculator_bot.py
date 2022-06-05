@@ -16,11 +16,10 @@ from telebot import types
 """
 bot = telebot.TeleBot("5465709277:AAEAF06f3GE2L24Y-jI0KuaT_Q5Kwo693j4")
 
-user_num1 = ""
-user_num1 = ""
+user_num1 = ''
+user_num2 = ''
 user_proc = '' # оператор 
 user_result = None
-
 
 # если /start, /help
 @bot.message_handler(commands=['start', 'help'])
@@ -28,17 +27,19 @@ def send_welcome(message):
     # убрать клавиатуру Telegram полностью - reply_markup = markup
     markup = types.ReplyKeyboardRemove(selective=False)
 
-    msg = bot.send_message(message.chat.id, "Привет" + message.from_user.first_name + ", я бот-калькулятор\nВведите число", reply_markup = markup)
+    msg = bot.send_message(message.chat.id, "Привет! "  + message.from_user.first_name + ", я бот-калькулятор\nВведите число", reply_markup = markup)
     bot.register_next_step_handler(msg, process_num1_step)
 
 # введите первое число
 def process_num1_step(message, user_result = None):
     try:
         global user_num1
+        user_num1 = int(message.text)
         # запоминаем число
-        #если только начали /start
+        # #если только начали /start
         if user_result == None:
             user_num1 = int(message.text)
+ 
         else:
             # ecли был передан результат ранее
             # пишем в первое число не спрашивая
@@ -65,10 +66,10 @@ def process_proc_step(message):
         # убрать клавиатуру телеграм полностью
         markup = types.ReplyKeyboardRemove(selective=False)
 
-        msg = bot.send_message(message.chat.id, 'Выберите еще число', reply_markup = markup)
+        msg = bot.send_message(message.chat.id, 'Введите еще число', reply_markup = markup)
         bot.register_next_step_handler(msg, process_num2_step)
     except Exception as e:
-         bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+         bot.reply_to(message, 'Это не число! Или что-то пошло не так...')
         
 # второе число
 
@@ -77,15 +78,16 @@ def process_num2_step(message):
         global user_num2
         # запоминаем число
         user_num2 = int(message.text)
+
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         itembtn1 = types.KeyboardButton('Результат')
         itembtn2 = types.KeyboardButton('Продолжить вычисления')
         markup.add(itembtn1, itembtn2)
 
-        msg = bot.send_message(message.chat.id, 'Показать результат или продолжить вычисления? ', reply_markup = markup)
+        msg = bot.send_message(message.chat.id, 'Показать результат или продолжить операцию?', reply_markup = markup)
         bot.register_next_step_handler(msg, process_alternative_step)
     except Exception as e:
-        bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+        bot.reply_to(message, 'Это не число... или что-то пошло не так...')
 
 
 # показать результат или продолжить операцию
@@ -96,37 +98,41 @@ def process_alternative_step(message):
         calc()
         # убрать клавиатуру телеграм полностью
         markup = types.ReplyKeyboardRemove(selective=False)
-        if message.text.lover() == 'результат':
-            bot.send_message(message.chat.id, caicResultPrint(), reply_markup = markup)
-        elif message.text.lover() == 'Продолжить вычисления':
+
+        if message.text.lower() == 'результат':
+            bot.send_message(message.chat.id, calcResultPrint(), reply_markup = markup)
+        elif message.text.lower() == 'продолжить вычисления':
             # перейти на шаг, где спрашиваем оператор
             # передаем ркзультат как первое число
-            process_proc_step(message, user_result)
+            process_num1_step(message, user_result)
+
     except Exception as e:
-        bot.reply_to(message, 'Это не число, или что-то пошло не так...')
+        bot.reply_to(message, 'что-то пошло не так...')
 
-# вывод результата пользователю
+#вывод результата пользователю
 
 
-def caicResultPrint():
+def calcResultPrint():
     global user_num1, user_num2, user_proc, user_result
-    return "Результат:" + str(user_num1) + ' ' + user_proc + ' ' + str(user_num2) + '=' + str(user_result )
+    return "Результат: " + str(user_num1) + '' + user_proc + '' + str(user_num2) + '=' + str(user_result)
 
 
 # вычисления 
 
 def calc():
     global user_num1, user_num2, user_proc, user_result
-    user_result =  eval(str(user_num1) + user_proc + str(user_num2))
+
+    user_result = eval(str(user_num1) + user_proc + str(user_num2))
+
     return user_result
 
-# bot.enable_save_next_step_handlers(delay=2)
+bot.enable_save_next_step_handlers(delay=2)
 
-# bot.load_next_step_handlers()
+bot.load_next_step_handlers()
 
-# if __name__ == '__main__':
-#     bot.polling(none_stop=True)
-bot.polling(none_stop=True, interval=0) # запуск бота на постоянной основе
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
 
+#bot.polling(none_stop=True, interval=0) # запуск бота на постоянной основе
 
 
